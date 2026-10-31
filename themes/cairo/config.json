@@ -1,4 +1,14 @@
 {
   "background_color": "#16122B",
-  "wallpaper": true
+  "wallpaper": true,
+  "wifi_status_color": true,
+  "wifi_status_warnings": true,
+  "vpn_pill": true,
+  "vpn_app": "com.tailscale.ipn",
+  "always_show_names": true,
+  "app_library_selection": true,
+  "header_white": true,
+  "back_opens_clock": true,
+  "app_glow": true,
+  "fade_rows": true
 }
