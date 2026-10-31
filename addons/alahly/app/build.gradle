@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+def localKeyFile = rootProject.file('../../../.env.local')
+def localKeyLine = localKeyFile.exists() ? localKeyFile.readLines().find { it.startsWith('API_KEY=') } : null
+def localApiKey = localKeyLine ? localKeyLine.substring('API_KEY='.length()).trim() : ''
+if (localApiKey && !(localApiKey ==~ /[A-Za-z0-9]+/)) throw new GradleException('Invalid API_KEY format')
+
+android {
+    namespace 'com.alahly.tv.fixtures'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.alahly.tv.fixtures'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+        buildConfigField 'String', 'API_SPORTS_KEY', '"' + localApiKey + '"'
+    }
+
+    buildFeatures { buildConfig true }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            // Sideloaded over ADB like the launcher: signed with the debug key.
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+}
