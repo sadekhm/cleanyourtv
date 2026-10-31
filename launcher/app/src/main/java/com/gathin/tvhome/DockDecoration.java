@@ -51,7 +51,8 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
         this.singleRow = singleRow;
         this.bandAll = singleRow && bandAll;
         this.density = density;
-        this.namesRoom = names ? 22 * density : 0;
+        // The name text sits just below the tile; 6dp of extra reach covers it without pushing the band into the next row.
+        this.namesRoom = names ? 6 * density : 0;
         this.lightGlass = lightGlass;
         this.evenPadding = evenPadding;
         this.bandVisible = bandVisible;
@@ -81,7 +82,8 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
         int pos = parent.getChildAdapterPosition(view);
         if (pos >= 0 && (singleRow || pos < dockSize)) {
             outRect.top = (int) (6 * density);
-            outRect.bottom = (int) (12 * density);
+            // 10dp of air between the dock band and the next grid row; the shorter namesRoom keeps this gap clean.
+            outRect.bottom = (int) (10 * density);
         }
     }
 
