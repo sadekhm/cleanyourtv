@@ -1,5 +1,5 @@
-"""Draws the original 14 wallpapers of themes/scenes as SVG (1280x720) from code. The collection also
-contains 15-cairo-nile.jpg, an illustrated Cairo wallpaper kept as a separate image asset.
+"""Draws the wallpapers of themes/scenes: 14 dark illustrated landscapes, as SVG (1280x720) from code, so the
+collection is this repo's own work and can be changed or extended here.
 
     python3 tools/scenes_wallpapers.py <folder>     # writes 01-dusk-peaks.svg ... 14-autumn-valley.svg
 
