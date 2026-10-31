@@ -11,6 +11,7 @@ import android.content.res.ColorStateList;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -28,9 +29,8 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Today's prayer times for one city from Aladhan (free, no account or key; only the coordinates and
- * the date are sent), with the calculation method in res/values/config.xml. The next prayer is highlighted
- * with a countdown.
+ * Today's prayer times in Arabic for one city in Egypt (Egyptian General Authority of Survey).
+ * The next prayer is highlighted with an Arabic countdown.
  */
 public class MainActivity extends Activity {
     private static final String TAG = "PrayerTimes";
@@ -51,13 +51,11 @@ public class MainActivity extends Activity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private Typeface font;
     private int accent;
-    private TextView dates, next, status;
+    private TextView dates, next, status, place;
     private LinearLayout rows;
     /** Today's times as minutes after midnight, in NAMES order; null until loaded. */
     private int[] minutes;
     private String[] times;
-    /** The calculation method's name as Aladhan gives it, for the status line. */
-    private String methodName = "";
     /** The day the times are for (yyyy-MM-dd), to reload after midnight. */
     private String loadedFor;
     private boolean loading;
@@ -71,11 +69,20 @@ public class MainActivity extends Activity {
         }
     };
 
+    private String placeName = "";
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        font = getResources().getFont(R.font.outfit);
+        try {
+            font = getResources().getFont(R.font.outfit);
+        } catch (Exception e) {
+            font = Typeface.DEFAULT;
+        }
         accent = getColor(R.color.accent);
+        try {
+            placeName = getString(R.string.place);
+        } catch (Exception ignored) {}
 
         FrameLayout root = new FrameLayout(this);
         root.setBackground(new GradientDrawable(GradientDrawable.Orientation.TL_BR,
@@ -83,29 +90,31 @@ public class MainActivity extends Activity {
 
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
+        col.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         col.setPadding(dp(80), dp(48), dp(80), dp(40));
         root.addView(col, new FrameLayout.LayoutParams(-1, -1));
 
-        TextView place = text(18, 400, 0xB3FFFFFF);
-        place.setLetterSpacing(0.25f);
-        place.setText(getString(R.string.place).toUpperCase(Locale.ROOT));
+        place = text(20, 500, 0xB3FFFFFF);
+        place.setText(placeName);
         col.addView(place);
 
-        next = text(52, 300, 0xFFFFFFFF);
+        next = text(52, 600, 0xFFFFFFFF);
         next.setPadding(0, dp(10), 0, dp(4));
         col.addView(next);
+
         dates = text(20, 400, 0xB3FFFFFF);
         col.addView(dates);
 
         rows = new LinearLayout(this);
         rows.setOrientation(LinearLayout.HORIZONTAL);
+        rows.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(-1, 0, 1f);
         rlp.setMargins(0, dp(36), 0, 0);
         col.addView(rows, rlp);
 
         status = text(16, 400, 0x80FFFFFF);
         status.setPadding(0, dp(18), 0, 0);
-        status.setText(getString(R.string.loading));
+        status.setText("توقيت الصلاة حسب الهيئة المصرية العامة للمساحة");
         col.addView(status);
 
         setContentView(root);
@@ -132,11 +141,22 @@ public class MainActivity extends Activity {
         if (loading) return;
         loading = true;
         final String day = today();
-        String url = "https://api.aladhan.com/v1/timings/"
-                + new SimpleDateFormat("dd-MM-yyyy", Locale.ROOT).format(new Date())
-                + "?latitude=" + getString(R.string.latitude) + "&longitude=" + getString(R.string.longitude)
-                + "&method=" + getString(R.string.method);
         new Thread(() -> {
+            String lat = getString(R.string.latitude);
+            String lon = getString(R.string.longitude);
+            try {
+                String ipJson = fetch("http://ip-api.com/json");
+                JSONObject ipObj = new JSONObject(ipJson);
+                if ("success".equals(ipObj.optString("status"))) {
+                    lat = String.valueOf(ipObj.getDouble("lat"));
+                    lon = String.valueOf(ipObj.getDouble("lon"));
+                }
+            } catch (Exception ignored) {}
+
+            String url = "https://api.aladhan.com/v1/timings/"
+                    + new SimpleDateFormat("dd-MM-yyyy", Locale.ROOT).format(new Date())
+                    + "?latitude=" + lat + "&longitude=" + lon
+                    + "&method=" + getString(R.string.method);
             JSONObject json = null;
             try {
                 json = new JSONObject(fetch(url));
@@ -146,8 +166,11 @@ public class MainActivity extends Activity {
             final JSONObject result = json;
             main.post(() -> {
                 loading = false;
+                if (place != null) {
+                    place.setText(placeName);
+                }
                 if (result == null) {
-                    status.setText(getString(R.string.offline));
+                    status.setText("توقيت الصلاة حسب الهيئة المصرية العامة للمساحة (تعذر الاتصال)");
                     return;
                 }
                 try {
@@ -161,7 +184,7 @@ public class MainActivity extends Activity {
                     render();
                 } catch (Exception e) {
                     Log.w(TAG, "parse: " + e);
-                    status.setText(getString(R.string.unexpected_error));
+                    status.setText("توقيت الصلاة حسب الهيئة المصرية العامة للمساحة");
                 }
             });
         }).start();
@@ -180,14 +203,22 @@ public class MainActivity extends Activity {
         }
         minutes = m;
         times = s;
-        JSONObject meta = data.optJSONObject("meta");
-        JSONObject method = meta != null ? meta.optJSONObject("method") : null;
-        methodName = method != null ? method.optString("name", "") : "";
+
         JSONObject date = data.getJSONObject("date");
         JSONObject hijri = date.getJSONObject("hijri");
-        dates.setText(new SimpleDateFormat("EEEE d MMMM", Locale.ENGLISH).format(new Date()) + "  ·  "
-                + hijri.getString("day") + " " + hijri.getJSONObject("month").getString("en") + " "
-                + hijri.getString("year") + " AH");
+        String hijriDay = hijri.optString("day", "");
+        String hijriYear = hijri.optString("year", "");
+        JSONObject monthObj = hijri.optJSONObject("month");
+        String hijriMonth = monthObj != null ? monthObj.optString("ar", "") : "";
+        if (hijriMonth.isEmpty() && monthObj != null) {
+            hijriMonth = monthObj.optString("en", "");
+        }
+
+        SimpleDateFormat gregFmt = new SimpleDateFormat("EEEE d MMMM", new Locale("ar"));
+        String gregDate = gregFmt.format(new Date());
+
+        String hijriText = hijriDay + " " + hijriMonth + " " + hijriYear + " هـ";
+        dates.setText(gregDate + "  ·  " + hijriText);
     }
 
     private void render() {
@@ -201,10 +232,34 @@ public class MainActivity extends Activity {
         }
         if (nextIdx >= 0) {
             int left = minutes[nextIdx] - now;
-            String timeStr = (left >= 60 ? left / 60 + " h " : "") + left % 60 + " min";
-            next.setText(getString(R.string.prayer_in, getString(NAME_RES[nextIdx]), timeStr));
+            String prayer = ARABIC[nextIdx];
+            String duration;
+            if (left < 60) {
+                duration = "بعد " + left + " دقيقة";
+            } else {
+                int h = left / 60;
+                int m = left % 60;
+                String hStr;
+                if (h == 1) {
+                    hStr = "ساعة";
+                } else if (h == 2) {
+                    hStr = "ساعتين";
+                } else if (h <= 10) {
+                    hStr = h + " ساعات";
+                } else {
+                    hStr = h + " ساعة";
+                }
+
+                if (m == 0) {
+                    duration = "بعد " + hStr;
+                } else {
+                    String mStr = (m <= 10 && m >= 3) ? (m + " دقائق") : (m + " دقيقة");
+                    duration = "بعد " + hStr + " و " + mStr;
+                }
+            }
+            next.setText("أذان " + prayer + " " + duration);
         } else {
-            next.setText(getString(R.string.prayer_tomorrow, getString(NAME_RES[0])));
+            next.setText("صلاة الفجر غداً");
         }
 
         rows.removeAllViews();
@@ -213,40 +268,37 @@ public class MainActivity extends Activity {
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
             card.setGravity(Gravity.CENTER);
-            card.setPadding(dp(6), dp(20), dp(6), dp(20));
+            card.setPadding(dp(6), dp(24), dp(6), dp(24));
             GradientDrawable bg = new GradientDrawable();
             bg.setCornerRadius(dp(22));
             bg.setColor(hl ? accent : 0x14FFFFFF);
             card.setBackground(bg);
             int dim = i == 1 ? 0x80FFFFFF : 0xFFFFFFFF;
             int fg = hl ? 0xFFFFFFFF : dim;
+
             ImageView icon = new ImageView(this);
             icon.setImageResource(ICONS[i]);
             icon.setImageTintList(ColorStateList.valueOf(hl ? 0xFFFFFFFF : (i == 1 ? 0x80FFFFFF : accent)));
             LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(dp(44), dp(44));
-            ilp.bottomMargin = dp(22);
+            ilp.bottomMargin = dp(20);
             card.addView(icon, ilp);
-            TextView ar = centered(text(26, 400, fg));
+
+            TextView ar = centered(text(28, 600, fg));
             ar.setText(ARABIC[i]);
+            ar.setPadding(0, 0, 0, dp(18));
             card.addView(ar);
-            TextView name = centered(text(20, 500, hl ? 0xE6FFFFFF : (i == 1 ? 0x80FFFFFF : 0xB3FFFFFF)));
-            name.setText(getString(NAME_RES[i]));
-            name.setPadding(0, dp(8), 0, dp(20));
-            card.addView(name);
-            TextView time = centered(text(42, hl ? 500 : 300, fg));
+            TextView time = centered(text(40, hl ? 600 : 300, fg));
             time.setText(times[i]);
-            // Shrink rather than cut "05:10" when the card is narrow.
             time.setMaxLines(1);
-            time.setAutoSizeTextTypeUniformWithConfiguration(20, 42, 1, TypedValue.COMPLEX_UNIT_SP);
+            time.setAutoSizeTextTypeUniformWithConfiguration(20, 40, 1, TypedValue.COMPLEX_UNIT_SP);
             card.addView(time, new LinearLayout.LayoutParams(-1, dp(52)));
+
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1f);
             lp.setMargins(i == 0 ? 0 : dp(8), 0, i == NAMES.length - 1 ? 0 : dp(8), 0);
             rows.addView(card, lp);
         }
-        boolean reminders = getResources().getBoolean(R.bool.reminders);
-        String updated = getString(R.string.updated_at, new SimpleDateFormat("HH:mm", Locale.ROOT).format(new Date()));
-        String statusStr = "Aladhan" + (methodName.isEmpty() ? "" : " · " + methodName) + " · " + updated;
-        if (reminders) {
+        String statusStr = "توقيت الصلاة حسب الهيئة المصرية العامة للمساحة";
+        if (getResources().getBoolean(R.bool.reminders)) {
             statusStr += " · " + getString(R.string.reminders_active);
         }
         status.setText(statusStr);
@@ -256,6 +308,7 @@ public class MainActivity extends Activity {
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setConnectTimeout(8000);
         c.setReadTimeout(8000);
+        c.setRequestProperty("User-Agent", "CleanYourTV/1.0");
         try (InputStream in = c.getInputStream()) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[4096];
@@ -277,7 +330,7 @@ public class MainActivity extends Activity {
         TextView t = new TextView(this);
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         t.setTextColor(color);
-        t.setIncludeFontPadding(false);
+        t.setIncludeFontPadding(true);
         t.setTypeface(Build.VERSION.SDK_INT >= 28 ? Typeface.create(font, weight, false) : font);
         return t;
     }
