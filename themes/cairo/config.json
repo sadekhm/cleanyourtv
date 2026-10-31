@@ -10,5 +10,6 @@
   "header_white": true,
   "back_opens_clock": true,
   "app_glow": true,
-  "fade_rows": true
+  "fade_rows": true,
+  "dock_even_padding": false
 }
