@@ -364,7 +364,7 @@
                     android:letterSpacing="0.02"
                     android:includeFontPadding="false"
                     android:singleLine="true"
-                    android:text="6th of Oct · --°C" />
+                    android:text="Cairo · --°C" />
 
                 <View
                     android:layout_width="1dp"

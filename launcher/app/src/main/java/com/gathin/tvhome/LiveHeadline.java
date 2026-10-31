@@ -36,7 +36,7 @@ public final class LiveHeadline {
     private final TextView tvAlAhly;
     private final Context context;
 
-    private static String cachedWeather = "6th of Oct · 28°C · Partly Cloudy";
+    private static String cachedWeather = "Cairo · 28°C · Partly Cloudy";
     private static String cachedPrayer = "Prayer Times";
     private static String cachedAlAhly = "Al Ahly · Loading matches";
     private static String[] cachedTimings = null;
@@ -109,7 +109,7 @@ public final class LiveHeadline {
             int temp = (int) Math.round(cur.getDouble("temperature_2m"));
             int code = cur.optInt("weather_code", 0);
             String desc = weatherDesc(code);
-            String result = "6th of Oct · " + temp + "°C · " + desc;
+            String result = "Cairo · " + temp + "°C · " + desc;
             cachedWeather = result;
             lastWeatherFetch = System.currentTimeMillis();
             main.post(() -> {
