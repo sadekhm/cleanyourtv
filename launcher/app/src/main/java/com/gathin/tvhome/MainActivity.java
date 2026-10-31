@@ -328,6 +328,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean fillDockLeavesSlots;
     /** Edit-dock mode (Settings menu): a reorder session that swaps one chosen app into one dock place. */
     private boolean dockEditing;
+    private LiveHeadline liveHeadline;
     /** Dock place being changed in edit-dock mode, or -1 while the place is still being chosen. */
     private int dockEditSlot = -1;
     /** Tile menu's "Add to dock": the app waiting for a dock place in edit-dock mode, or null. */
@@ -777,6 +778,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         btnInputs = findViewById(R.id.btnInputs);
+        TextView tvWeather = findViewById(R.id.liveWeather);
+        TextView tvPrayer = findViewById(R.id.livePrayer);
+        TextView tvAlAhly = findViewById(R.id.liveAlAhly);
+        liveHeadline = new LiveHeadline(this, tvWeather, tvPrayer, tvAlAhly);
         View btnSettings = findViewById(R.id.btnSettings);
         btnInputs.setOnClickListener(v -> showInputs());
         btnWifi.setOnClickListener(v -> openNetworkPill());
@@ -1052,6 +1057,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (openLiveTvAfterBoot()) return;
         updateGreeting();
         updatePanel();
+        if (liveHeadline != null) liveHeadline.start();
         // The network and Inputs pills keep their state while Home is in the background, and callbacks update them
         // when the network or the inputs change, so this refresh only catches anything missed. Its binder calls
         // (about 7 ms on a TCL C755, most of it WifiManager.getConnectionInfo) would hold up the first frame back
@@ -1238,6 +1244,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // Only Home's own share is dropped: a key service that saw the same DOWN keeps its hold.
         RemoteKeys.release(this);
         cancelHoldOk();
+        if (liveHeadline != null) liveHeadline.stop();
         root.removeCallbacks(showIdleClock);
         endReorder();   // Home or another app while reordering keeps the order so far
         wallpaperPlayer.stop();

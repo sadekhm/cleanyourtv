@@ -4,7 +4,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF000000">
+    android:background="#FF080C16">
 
     <!-- Time-of-day backdrop, drawn once a minute (config.xml sky_intensity; 0 keeps it hidden).
          Keep in step with layout/activity_main.xml: every view there must exist here too. -->
@@ -335,6 +335,75 @@
                 android:letterSpacing="0.04"
                 android:focusable="false"
                 android:visibility="gone" />
+
+            <!-- Apple TV-grade Live Status Bar: Weather, Prayer Times, Sports -->
+            <LinearLayout
+                android:id="@+id/liveHeadlineBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/stats"
+                android:layout_alignStart="@id/leftBlock"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/status_bar_bg"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:focusable="false"
+                android:importantForAccessibility="no">
+
+                <TextView
+                    android:id="@+id/liveWeather"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="12.5sp"
+                    android:fontFamily="@string/font_medium"
+                    android:letterSpacing="0.02"
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:text="6th of Oct · --°C" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="11dp"
+                    android:layout_marginStart="11dp"
+                    android:layout_marginEnd="11dp"
+                    android:background="#2EFFFFFF" />
+
+                <TextView
+                    android:id="@+id/livePrayer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="12.5sp"
+                    android:fontFamily="@string/font_medium"
+                    android:letterSpacing="0.02"
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:text="Prayer Times" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="11dp"
+                    android:layout_marginStart="11dp"
+                    android:layout_marginEnd="11dp"
+                    android:background="#2EFFFFFF" />
+
+                <TextView
+                    android:id="@+id/liveAlAhly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="12.5sp"
+                    android:fontFamily="@string/font_medium"
+                    android:letterSpacing="0.02"
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:text="Al Ahly SC" />
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/topButtons"
