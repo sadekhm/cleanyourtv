@@ -11,6 +11,16 @@ sky, with the water carrying the light back. One picture, no rotation.
 |---|---|---|
 | `background_color` | `#16122B` | The sky's violet behind everything |
 | `wallpaper` | `true` | Show `wallpaper.jpg` |
+| `wifi_status_color` | `true` | The Wi-Fi icon green while online, white while it is not |
+| `wifi_status_warnings` | `true` | The same icon orange when connected but the internet is not there |
+| `vpn_pill` | `true` | The VPN as a pill of its own, green with a lock while the tunnel is up |
+| `vpn_app` | `com.tailscale.ipn` | The app a long press on the Wi-Fi pill opens |
+| `always_show_names` | `true` | A name under every tile, not only the focused one |
+| `app_library_selection` | `true` | In the app library, OK ticks an app for Home instead of doing nothing |
+| `header_white` | `true` | The date and its divider in full white over the bright sky |
+| `back_opens_clock` | `true` | Back on Home opens the clock over the wallpaper |
+| `app_glow` | `true` | The focus highlight glows in the app's colour on every tile |
+| `fade_rows` | `true` | The rows fade as they scroll up under the clock |
 
 ## Install
 
