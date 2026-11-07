@@ -136,7 +136,7 @@ public class RemoteKeysTest {
         assertEquals("mute", keys.get(190));
         assertEquals("screensaver", keys.get(195));
         assertEquals("sleep", parseHold("hold:190:sleep").get(190));
-        for (String word : new String[] {"back", "home", "recents", "mute", "sleep", "screensaver", "settings", "wifi", "ignore"}) {
+        for (String word : new String[] {"back", "home", "recents", "mute", "sleep", "screensaver", "settings", "wifi", "library", "ignore"}) {
             assertTrue(word, RemoteKeys.isAction(word));
         }
         assertFalse(RemoteKeys.isAction("com.netflix.ninja"));
@@ -320,5 +320,12 @@ public class RemoteKeysTest {
         assertFalse(RemoteKeys.menuReleased(1, 0x20));
         assertFalse(RemoteKeys.menuReleased(1, 0x20 | 0x100 | 0x8));
         assertFalse(RemoteKeys.menuReleased(1, RemoteKeys.XIAOMI_SHORT_MENU_FLAGS & ~0x4000));
+    }
+
+    @Test public void channelKeysAreChannelUpAndDownOnly() {
+        assertTrue(RemoteKeys.isChannelKey(166));   // KEYCODE_CHANNEL_UP
+        assertTrue(RemoteKeys.isChannelKey(167));   // KEYCODE_CHANNEL_DOWN
+        assertFalse(RemoteKeys.isChannelKey(170));  // KEYCODE_TV
+        assertFalse(RemoteKeys.isChannelKey(24));   // KEYCODE_VOLUME_UP
     }
 }

@@ -58,6 +58,14 @@ def connect():
     return Device()
 
 
+def connect_error(error):
+    """tv.py's own: what to print when connect() raised, or None for an error it cannot word.
+
+    This stub has no network, so it never has anything to add.
+    """
+    return None
+
+
 args = sys.argv[1:]
 if args and args[0] == "--push":
     src, dst = args[1], local(args[2])
@@ -125,7 +133,13 @@ class ThemePushTest(unittest.TestCase):
         (self.tools / "tv.py").write_text(FAKE_TV)
         venv = self.tools / "venv" / "bin"
         venv.mkdir(parents=True)
-        (venv / "python").symlink_to(sys.executable)
+        try:
+            (venv / "python").symlink_to(sys.executable)
+        except OSError:
+            # Windows without the symlink privilege (WinError 1314). Only the theme.sh runs use this
+            # python, and they skip there; the checks of theme.ps1 still run.
+            if os.name != "nt":
+                raise
         self.bin = self.base / "bin"
         self.bin.mkdir()
         content = self.bin / "content"

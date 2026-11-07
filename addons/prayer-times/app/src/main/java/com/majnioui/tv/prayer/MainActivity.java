@@ -156,7 +156,8 @@ public class MainActivity extends Activity {
             String url = "https://api.aladhan.com/v1/timings/"
                     + new SimpleDateFormat("dd-MM-yyyy", Locale.ROOT).format(new Date())
                     + "?latitude=" + lat + "&longitude=" + lon
-                    + "&method=" + getString(R.string.method);
+                    + "&method=" + getString(R.string.method)
+                    + "&school=" + getString(R.string.school);
             JSONObject json = null;
             try {
                 json = new JSONObject(fetch(url));
